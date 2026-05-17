@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Generator
 
-## Getting Started
+Веб-застосунок для автоматичної генерації персональних портфоліо-сайтів на основі введених користувачем даних.
 
-First, run the development server:
+## 🔗 Демо
+
+[portfolio-generator-tau-seven.vercel.app](https://portfolio-generator-tau-seven.vercel.app/)
+
+## 🚀 Функціонал
+
+- **Multi-step форма** — покроковий збір даних (особисті дані, проєкти, контакти)
+- **Live Preview** — миттєве відображення результату під час заповнення
+- **3 теми оформлення** — Мінімальний, Темний, Креативний
+- **Валідація даних** — підсвічування помилок в реальному часі
+- **Індикатор прогресу** — показує відсоток заповнення форми
+- **Автозбереження** — дані зберігаються в localStorage
+- **Експорт HTML** — скачування готового портфоліо одним файлом
+
+## 🛠 Технології
+
+- **Next.js 15** — React фреймворк з App Router
+- **TypeScript** — типізація даних
+- **Tailwind CSS** — стилізація
+- **LocalStorage API** — збереження стану
+- **REST API** — серверна генерація HTML
+
+## 📦 Встановлення
 
 ```bash
+git clone https://github.com/holytimy4/portfolio-generator.git
+cd portfolio-generator
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Відкрий [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗 Архітектура
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+app/
+├── api/generate/ ← REST endpoint генерації HTML
+└── page.tsx ← головна сторінка
+components/
+├── steps/ ← кроки форми (Personal, Projects, Contacts)
+├── FormWizard.tsx ← головний компонент з логікою
+├── Preview.tsx ← live preview через iframe
+└── ThemePicker.tsx ← вибір теми оформлення
+lib/
+├── types.ts ← TypeScript інтерфейси
+├── templates.ts ← генератор HTML/CSS шаблонів
+├── storage.ts ← робота з localStorage
+└── validation.ts ← валідація форми
 
-## Learn More
+## 👨‍💻 Автор
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[GitHub](https://github.com/holytimy4)

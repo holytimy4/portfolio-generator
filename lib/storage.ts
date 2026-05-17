@@ -7,8 +7,11 @@ export const defaultData: PortfolioData = {
     name: '',
     title: '',
     bio: '',
+    avatar: '',
   },
   projects: [],
+  skills: [],
+  education: [],
   contacts: {
     email: '',
     github: '',
@@ -30,7 +33,13 @@ export function loadFromStorage(): PortfolioData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultData;
-    return { ...defaultData, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return {
+      ...defaultData,
+      ...parsed,
+      skills: parsed.skills || [],
+      education: parsed.education || [],
+    };
   } catch (e) {
     return defaultData;
   }

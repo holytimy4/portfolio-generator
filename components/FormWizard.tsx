@@ -14,17 +14,23 @@ import {
   getCompletionPercent,
   ValidationErrors,
 } from '@/lib/validation';
+import Link from 'next/link';
+import AnimatedStep from './AnimatedStep';
 import StepPersonal from './steps/StepPersonal';
 import StepProjects from './steps/StepProjects';
+import StepSkills from './steps/StepSkills';
+import StepEducation from './steps/StepEducation';
 import StepContacts from './steps/StepContacts';
 import ThemePicker from './ThemePicker';
 import Preview from './Preview';
 
-const steps: { id: Step; label: string }[] = [
-  { id: 'personal', label: 'Особисті дані' },
-  { id: 'projects', label: 'Проєкти' },
-  { id: 'contacts', label: 'Контакти' },
-  { id: 'preview', label: 'Перегляд' },
+const steps: { id: Step; label: string; icon: string }[] = [
+  { id: 'personal', label: 'Особисті дані', icon: '👤' },
+  { id: 'projects', label: 'Проєкти', icon: '📁' },
+  { id: 'skills', label: 'Навички', icon: '⚡' },
+  { id: 'education', label: 'Освіта', icon: '🎓' },
+  { id: 'contacts', label: 'Контакти', icon: '✉' },
+  { id: 'preview', label: 'Перегляд', icon: '👁' },
 ];
 
 export default function FormWizard() {
@@ -109,6 +115,14 @@ export default function FormWizard() {
         return (
           <StepProjects data={data} onChange={handleChange} errors={errors} />
         );
+      case 'skills':
+        return (
+          <StepSkills data={data} onChange={handleChange} errors={errors} />
+        );
+      case 'education':
+        return (
+          <StepEducation data={data} onChange={handleChange} errors={errors} />
+        );
       case 'contacts':
         return (
           <StepContacts data={data} onChange={handleChange} errors={errors} />
@@ -147,6 +161,12 @@ export default function FormWizard() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/stats"
+              className="text-sm text-gray-400 hover:text-indigo-500 transition-colors"
+            >
+              📊 Статистика
+            </Link>
             <button
               onClick={() => setShowResetConfirm(true)}
               className="text-sm text-gray-400 hover:text-red-500 transition-colors"
@@ -164,7 +184,7 @@ export default function FormWizard() {
         </div>
       </header>
 
-      {/* Reset confirm */}
+      {/* Reset confirm modal */}
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full mx-4">
@@ -192,9 +212,9 @@ export default function FormWizard() {
         </div>
       )}
 
-      {/* Steps */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="max-w-7xl mx-auto flex gap-2">
+      {/* Steps navigation */}
+      <div className="bg-white border-b border-gray-200 px-6 py-3 overflow-x-auto">
+        <div className="max-w-7xl mx-auto flex gap-1 min-w-max">
           {steps.map((step, index) => (
             <button
               key={step.id}
@@ -216,21 +236,26 @@ export default function FormWizard() {
               >
                 {index < currentIndex ? '✓' : index + 1}
               </span>
-              {step.label}
+              <span className="hidden sm:inline">{step.label}</span>
+              <span className="sm:hidden">{step.icon}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Main */}
+      {/* Main content */}
       <main className="max-w-7xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: Form */}
           <div className="space-y-6">
             {currentStep !== 'preview' && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                {renderStep()}
+                <AnimatedStep stepKey={currentStep}>
+                  {renderStep()}
+                </AnimatedStep>
               </div>
             )}
+
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <ThemePicker data={data} onChange={handleChange} />
             </div>
@@ -260,7 +285,8 @@ export default function FormWizard() {
             )}
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          {/* Right: Preview */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-6 self-start">
             {isClient && <Preview data={data} />}
           </div>
         </div>
