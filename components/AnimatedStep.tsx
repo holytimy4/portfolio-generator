@@ -27,8 +27,8 @@ export default function AnimatedStep({ children, stepKey }: Props) {
     <div
       style={{
         opacity: animate ? 1 : 0,
-        transform: animate ? 'translateY(0)' : 'translateY(10px)',
-        transition: 'opacity 0.2s ease, transform 0.2s ease',
+        transform: animate ? 'translateY(0)' : 'translateY(15px)',
+        transition: 'opacity 0.6s ease, transform 0.6s ease',
       }}
     >
       {children}
