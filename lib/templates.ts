@@ -288,8 +288,8 @@ function creativeCSS(): string {
   return `
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Arial', sans-serif; max-width: 900px; margin: 0 auto; color: #333; line-height: 1.6; }
-    header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 40px; display: flex; align-items: center; gap: 32px; }
-    .avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.5); }
+    header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 40px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+    .avatar { width: 100px; height: 100px; min-width: 100px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.5); flex-shrink: 0; }
     h1 { font-size: 3rem; font-weight: 800; }
     .title { font-size: 1.2rem; opacity: 0.85; margin-top: 8px; }
     .bio { padding: 40px; background: #f9f9f9; font-size: 1.05rem; color: #555; }

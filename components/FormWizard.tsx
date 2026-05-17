@@ -226,6 +226,13 @@ export default function FormWizard() {
             >
               📊
             </Link>
+            <Link
+              href="/gallery"
+              target="_blank"
+              className="text-xs text-gray-400 hover:text-indigo-500 transition-colors px-2 py-1"
+            >
+              🌐
+            </Link>
             <ThemeToggle />
             <button
               onClick={() => setShowResetConfirm(true)}

@@ -60,7 +60,6 @@ function generateSlug(name: string): string {
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
     .substring(0, 30);
-
   const suffix = Math.random().toString(36).substring(2, 7);
   return clean ? `${clean}-${suffix}` : `portfolio-${suffix}`;
 }
@@ -73,6 +72,20 @@ export async function POST(req: NextRequest) {
     await redis.set(`portfolio:${slug}`, JSON.stringify(data), {
       ex: 60 * 60 * 24 * 30,
     });
+
+    // Зберігаємо в галерею
+    const galleryItem = {
+      slug,
+      name: data.personal.name,
+      title: data.personal.title,
+      theme: data.theme,
+      avatar: data.personal.avatar || '',
+      projectsCount: data.projects.length,
+      publishedAt: Date.now(),
+    };
+
+    await redis.lpush('gallery', JSON.stringify(galleryItem));
+    await redis.ltrim('gallery', 0, 49); // максимум 50 портфоліо в галереї
 
     return NextResponse.json({ slug, url: `/p/${slug}` });
   } catch (error) {
