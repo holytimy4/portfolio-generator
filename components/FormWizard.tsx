@@ -15,7 +15,9 @@ import {
   ValidationErrors,
 } from '@/lib/validation';
 import { exportToPdf } from '@/lib/exportPdf';
+
 import Link from 'next/link';
+import ThemeToggle from './ThemeToggle';
 import AnimatedStep from './AnimatedStep';
 import StepPersonal from './steps/StepPersonal';
 import StepProjects from './steps/StepProjects';
@@ -218,6 +220,7 @@ export default function FormWizard() {
             >
               📊
             </Link>
+            <ThemeToggle />
             <button
               onClick={() => setShowResetConfirm(true)}
               className="text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1"
