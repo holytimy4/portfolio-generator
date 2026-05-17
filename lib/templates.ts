@@ -1,7 +1,8 @@
 import { PortfolioData } from './types';
 
 export function generateHTML(data: PortfolioData): string {
-  const { personal, projects, skills, education, contacts, theme } = data;
+  const { personal, projects, skills, education, experience, contacts, theme } =
+    data;
 
   const projectsHTML = projects
     .map(
@@ -69,6 +70,45 @@ export function generateHTML(data: PortfolioData): string {
     )
     .join('');
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month] = dateStr.split('-');
+    const months = [
+      'Січ',
+      'Лют',
+      'Бер',
+      'Квіт',
+      'Трав',
+      'Черв',
+      'Лип',
+      'Серп',
+      'Вер',
+      'Жовт',
+      'Лист',
+      'Груд',
+    ];
+    return `${months[parseInt(month) - 1]} ${year}`;
+  };
+
+  const experienceHTML = experience
+    .map(
+      (e) => `
+    <div class="exp-item">
+      <div class="exp-header">
+        <div>
+          <h3>${e.position}</h3>
+          <p class="exp-company">${e.company}</p>
+        </div>
+        <span class="exp-dates">
+          ${formatDate(e.startDate)} — ${e.current ? 'Зараз' : formatDate(e.endDate)}
+        </span>
+      </div>
+      ${e.description ? `<p class="exp-desc">${e.description}</p>` : ''}
+    </div>
+  `,
+    )
+    .join('');
+
   const contactsHTML = [
     contacts.email &&
       `<a href="mailto:${contacts.email}">✉ ${contacts.email}</a>`,
@@ -106,6 +146,16 @@ export function generateHTML(data: PortfolioData): string {
   <section class="bio">
     <p>${personal.bio}</p>
   </section>
+
+  ${
+    experience.length > 0
+      ? `
+  <section class="experience">
+    <h2>Досвід роботи</h2>
+    ${experienceHTML}
+  </section>`
+      : ''
+  }
 
   ${
     projects.length > 0
@@ -151,7 +201,7 @@ function minimalCSS(): string {
   return `
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Georgia', serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #222; line-height: 1.7; }
-    header { border-bottom: 2px solid #222; padding-bottom: 24px; margin-bottom: 32px; text-align: left; }
+    header { border-bottom: 2px solid #222; padding-bottom: 24px; margin-bottom: 32px; }
     .avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 16px; }
     h1 { font-size: 2.5rem; font-weight: normal; }
     .title { font-size: 1.1rem; color: #666; margin-top: 8px; }
@@ -171,13 +221,19 @@ function minimalCSS(): string {
     .skill-header { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.95rem; }
     .skill-level-text { color: #888; font-size: 0.85rem; }
     .skill-bar { background: #f0f0f0; height: 6px; border-radius: 3px; }
-    .skill-fill { height: 100%; background: #222; border-radius: 3px; transition: width 0.3s; }
+    .skill-fill { height: 100%; background: #222; border-radius: 3px; }
     .edu-item { border-left: 2px solid #222; padding-left: 16px; margin-bottom: 24px; }
     .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
     .edu-item h3 { font-size: 1.1rem; }
     .edu-school { color: #666; font-size: 0.95rem; }
     .edu-year { background: #f0f0f0; padding: 2px 10px; font-size: 0.85rem; white-space: nowrap; }
     .edu-desc { color: #555; font-size: 0.9rem; margin-top: 8px; }
+    .exp-item { border-left: 2px solid #222; padding-left: 16px; margin-bottom: 24px; }
+    .exp-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .exp-item h3 { font-size: 1.1rem; }
+    .exp-company { color: #666; font-size: 0.95rem; }
+    .exp-dates { background: #f0f0f0; padding: 2px 10px; font-size: 0.85rem; white-space: nowrap; }
+    .exp-desc { color: #555; font-size: 0.9rem; margin-top: 8px; }
     footer { margin-top: 64px; border-top: 1px solid #ddd; padding-top: 24px; }
     .contacts a { color: #222; text-decoration: none; margin-right: 8px; }
     .contacts a:hover { text-decoration: underline; }
@@ -216,6 +272,12 @@ function darkCSS(): string {
     .edu-school { color: #888; font-size: 0.95rem; }
     .edu-year { border: 1px solid #333; color: #00ff88; padding: 2px 10px; font-size: 0.85rem; white-space: nowrap; }
     .edu-desc { color: #777; font-size: 0.9rem; margin-top: 8px; }
+    .exp-item { border-left: 2px solid #00ff88; padding-left: 16px; margin-bottom: 24px; }
+    .exp-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .exp-item h3 { color: #fff; font-size: 1.1rem; }
+    .exp-company { color: #888; font-size: 0.95rem; }
+    .exp-dates { border: 1px solid #333; color: #00ff88; padding: 2px 10px; font-size: 0.85rem; white-space: nowrap; }
+    .exp-desc { color: #777; font-size: 0.9rem; margin-top: 8px; }
     footer { margin-top: 64px; border-top: 1px solid #222; padding-top: 24px; }
     .contacts a { color: #00ff88; text-decoration: none; margin-right: 8px; }
     .generated { font-size: 0.75rem; color: #444; margin-top: 12px; }
@@ -254,6 +316,12 @@ function creativeCSS(): string {
     .edu-school { color: #888; font-size: 0.95rem; margin-top: 2px; }
     .edu-year { background: #f0edff; color: #667eea; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
     .edu-desc { color: #666; font-size: 0.9rem; margin-top: 8px; }
+    .exp-item { background: white; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .exp-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .exp-item h3 { font-size: 1.1rem; font-weight: 700; }
+    .exp-company { color: #888; font-size: 0.95rem; margin-top: 2px; }
+    .exp-dates { background: #f0edff; color: #667eea; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+    .exp-desc { color: #666; font-size: 0.9rem; margin-top: 8px; }
     footer { background: #1a1a2e; color: #aaa; padding: 32px 40px; }
     .contacts a { color: #667eea; text-decoration: none; margin-right: 12px; }
     .generated { font-size: 0.75rem; color: #555; margin-top: 12px; }

@@ -8,19 +8,14 @@ export interface ValidationErrors {
   projects?: { [id: string]: { title?: string; description?: string } };
   skills?: { [id: string]: { name?: string } };
   education?: { [id: string]: { degree?: string; school?: string } };
+  experience?: { [id: string]: { position?: string; company?: string } };
 }
 
 export function validate(data: PortfolioData): ValidationErrors {
   const errors: ValidationErrors = {};
 
-  if (!data.personal.name.trim()) {
-    errors.name = "Ім'я обов'язкове";
-  }
-
-  if (!data.personal.title.trim()) {
-    errors.title = "Посада обов'язкова";
-  }
-
+  if (!data.personal.name.trim()) errors.name = "Ім'я обов'язкове";
+  if (!data.personal.title.trim()) errors.title = "Посада обов'язкова";
   if (!data.personal.bio.trim()) {
     errors.bio = "Опис обов'язковий";
   } else if (data.personal.bio.trim().length < 20) {
@@ -60,6 +55,16 @@ export function validate(data: PortfolioData): ValidationErrors {
   if (Object.keys(educationErrors).length > 0)
     errors.education = educationErrors;
 
+  const experienceErrors: ValidationErrors['experience'] = {};
+  data.experience.forEach((e) => {
+    const err: { position?: string; company?: string } = {};
+    if (!e.position.trim()) err.position = "Посада обов'язкова";
+    if (!e.company.trim()) err.company = "Компанія обов'язкова";
+    if (Object.keys(err).length > 0) experienceErrors[e.id] = err;
+  });
+  if (Object.keys(experienceErrors).length > 0)
+    errors.experience = experienceErrors;
+
   return errors;
 }
 
@@ -87,6 +92,9 @@ export function getCompletionPercent(data: PortfolioData): number {
 
   total += 1;
   if (data.education.length > 0) filled++;
+
+  total += 1;
+  if (data.experience.length > 0) filled++;
 
   return Math.round((filled / total) * 100);
 }

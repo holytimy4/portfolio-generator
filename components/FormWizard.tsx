@@ -23,6 +23,7 @@ import StepPersonal from './steps/StepPersonal';
 import StepProjects from './steps/StepProjects';
 import StepSkills from './steps/StepSkills';
 import StepEducation from './steps/StepEducation';
+import StepExperience from './steps/StepExperience';
 import StepContacts from './steps/StepContacts';
 import ThemePicker from './ThemePicker';
 import Preview from './Preview';
@@ -33,6 +34,7 @@ const steps: { id: Step; label: string; icon: string }[] = [
   { id: 'projects', label: 'Проєкти', icon: '📁' },
   { id: 'skills', label: 'Навички', icon: '⚡' },
   { id: 'education', label: 'Освіта', icon: '🎓' },
+  { id: 'experience', label: 'Досвід', icon: '💼' },
   { id: 'contacts', label: 'Контакти', icon: '✉' },
   { id: 'preview', label: 'Перегляд', icon: '👁' },
 ];
@@ -177,6 +179,10 @@ export default function FormWizard() {
       case 'education':
         return (
           <StepEducation data={data} onChange={handleChange} errors={errors} />
+        );
+      case 'experience':
+        return (
+          <StepExperience data={data} onChange={handleChange} errors={errors} />
         );
       case 'contacts':
         return (

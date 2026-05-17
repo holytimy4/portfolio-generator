@@ -16,7 +16,7 @@ export interface Project {
 export interface Skill {
   id: string;
   name: string;
-  level: number; // 1-5
+  level: number;
   category: string;
 }
 
@@ -26,6 +26,16 @@ export interface Education {
   school: string;
   year: string;
   description?: string;
+}
+
+export interface Experience {
+  id: string;
+  position: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  current: boolean;
+  description: string;
 }
 
 export interface ContactInfo {
@@ -40,6 +50,7 @@ export interface PortfolioData {
   projects: Project[];
   skills: Skill[];
   education: Education[];
+  experience: Experience[];
   contacts: ContactInfo;
   theme: 'minimal' | 'dark' | 'creative';
 }
@@ -49,5 +60,6 @@ export type Step =
   | 'projects'
   | 'skills'
   | 'education'
+  | 'experience'
   | 'contacts'
   | 'preview';

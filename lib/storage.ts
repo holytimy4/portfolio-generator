@@ -12,6 +12,7 @@ export const defaultData: PortfolioData = {
   projects: [],
   skills: [],
   education: [],
+  experience: [],
   contacts: {
     email: '',
     github: '',
@@ -39,6 +40,7 @@ export function loadFromStorage(): PortfolioData {
       ...parsed,
       skills: parsed.skills || [],
       education: parsed.education || [],
+      experience: parsed.experience || [],
     };
   } catch (e) {
     return defaultData;
