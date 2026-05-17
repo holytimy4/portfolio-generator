@@ -14,6 +14,7 @@ import {
   getCompletionPercent,
   ValidationErrors,
 } from '@/lib/validation';
+import { exportToPdf } from '@/lib/exportPdf';
 import Link from 'next/link';
 import AnimatedStep from './AnimatedStep';
 import StepPersonal from './steps/StepPersonal';
@@ -38,6 +39,7 @@ export default function FormWizard() {
   const [data, setData] = useState<PortfolioData>(defaultData);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -45,6 +47,7 @@ export default function FormWizard() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | null>(null);
   const [publishUrl, setPublishUrl] = useState<string | null>(null);
+  const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -76,6 +79,7 @@ export default function FormWizard() {
     setCurrentStep('personal');
     setErrors({});
     setPublishUrl(null);
+    setPublishedSlug(null);
     setShowResetConfirm(false);
   };
 
@@ -121,6 +125,7 @@ export default function FormWizard() {
       if (result.slug) {
         const fullUrl = `${window.location.origin}/p/${result.slug}`;
         setPublishUrl(fullUrl);
+        setPublishedSlug(result.slug);
       }
     } catch {
       alert('Помилка публікації. Спробуйте ще раз.');
@@ -134,6 +139,21 @@ export default function FormWizard() {
     navigator.clipboard.writeText(publishUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleExportPdf = async () => {
+    if (!publishedSlug) {
+      alert('Спочатку опублікуйте портфоліо, потім скачайте PDF.');
+      return;
+    }
+    setIsExportingPdf(true);
+    try {
+      await exportToPdf(publishedSlug, data.personal.name || 'portfolio');
+    } catch {
+      alert('Помилка експорту PDF. Спробуйте ще раз.');
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   const renderStep = () => {
@@ -215,6 +235,14 @@ export default function FormWizard() {
               className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {isPublishing ? '...' : '🌐 Опублікувати'}
+            </button>
+            <button
+              onClick={handleExportPdf}
+              disabled={isExportingPdf || !publishedSlug}
+              title={!publishedSlug ? 'Спочатку опублікуйте портфоліо' : ''}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {isExportingPdf ? '...' : '📄 PDF'}
             </button>
           </div>
 
@@ -323,6 +351,16 @@ export default function FormWizard() {
               className="w-full bg-green-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-40 text-left"
             >
               🌐 Опублікувати
+            </button>
+            <button
+              onClick={() => {
+                handleExportPdf();
+                setShowMobileMenu(false);
+              }}
+              disabled={isExportingPdf || !publishedSlug}
+              className="w-full bg-red-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-red-700 disabled:opacity-40 text-left"
+            >
+              📄 Скачати PDF
             </button>
             <Link
               href="/stats"
