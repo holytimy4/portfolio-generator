@@ -24,6 +24,7 @@ import StepEducation from './steps/StepEducation';
 import StepContacts from './steps/StepContacts';
 import ThemePicker from './ThemePicker';
 import Preview from './Preview';
+import QRModal from './QRModal';
 
 const steps: { id: Step; label: string; icon: string }[] = [
   { id: 'personal', label: 'Особисті дані', icon: '👤' },
@@ -45,6 +46,7 @@ export default function FormWizard() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showQR, setShowQR] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | null>(null);
   const [publishUrl, setPublishUrl] = useState<string | null>(null);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
@@ -209,40 +211,48 @@ export default function FormWizard() {
           </div>
 
           {/* Desktop buttons */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1.5 flex-wrap justify-end">
             <Link
               href="/stats"
-              className="text-sm text-gray-400 hover:text-indigo-500 transition-colors px-2"
+              className="text-xs text-gray-400 hover:text-indigo-500 transition-colors px-2 py-1"
             >
-              📊 Статистика
+              📊
             </Link>
             <button
               onClick={() => setShowResetConfirm(true)}
-              className="text-sm text-gray-400 hover:text-red-500 transition-colors px-2"
+              className="text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1"
             >
               Скинути
             </button>
             <button
               onClick={handleDownload}
               disabled={isGenerating || !data.personal.name}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              {isGenerating ? '...' : '⬇ Скачати'}
+              {isGenerating ? '...' : '⬇ HTML'}
             </button>
             <button
               onClick={handlePublish}
               disabled={isPublishing || !data.personal.name}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              {isPublishing ? '...' : '🌐 Опублікувати'}
+              {isPublishing ? '...' : '🌐 Публікувати'}
             </button>
             <button
               onClick={handleExportPdf}
               disabled={isExportingPdf || !publishedSlug}
-              title={!publishedSlug ? 'Спочатку опублікуйте портфоліо' : ''}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title={!publishedSlug ? 'Спочатку опублікуйте' : 'Скачати PDF'}
+              className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {isExportingPdf ? '...' : '📄 PDF'}
+            </button>
+            <button
+              onClick={() => setShowQR(true)}
+              disabled={!publishedSlug}
+              title={!publishedSlug ? 'Спочатку опублікуйте' : 'QR-код'}
+              className="bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              📱 QR
             </button>
           </div>
 
@@ -289,6 +299,12 @@ export default function FormWizard() {
                 {copied ? '✓ Скопійовано' : 'Копіювати'}
               </button>
               <button
+                onClick={() => setShowQR(true)}
+                className="text-xs bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700"
+              >
+                QR
+              </button>
+              <button
                 onClick={() => setPublishUrl(null)}
                 className="text-green-400 hover:text-green-600"
               >
@@ -297,6 +313,11 @@ export default function FormWizard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* QR Modal */}
+      {showQR && publishUrl && (
+        <QRModal url={publishUrl} onClose={() => setShowQR(false)} />
       )}
 
       {/* Reset confirm modal */}
@@ -361,6 +382,16 @@ export default function FormWizard() {
               className="w-full bg-red-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-red-700 disabled:opacity-40 text-left"
             >
               📄 Скачати PDF
+            </button>
+            <button
+              onClick={() => {
+                setShowQR(true);
+                setShowMobileMenu(false);
+              }}
+              disabled={!publishedSlug}
+              className="w-full bg-purple-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-purple-700 disabled:opacity-40 text-left"
+            >
+              📱 QR-код
             </button>
             <Link
               href="/stats"
