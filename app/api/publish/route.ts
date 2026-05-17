@@ -66,14 +66,69 @@ function generateSlug(name: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const data: PortfolioData = await req.json();
-    const slug = generateSlug(data.personal.name || 'portfolio');
+    const {
+      data,
+      editToken,
+      slug: existingSlug,
+    } = (await req.json()) as {
+      data: PortfolioData;
+      editToken?: string;
+      slug?: string;
+    };
+
+    let slug = existingSlug;
+
+    if (editToken && existingSlug) {
+      const savedToken = await redis.get(`token:${existingSlug}`);
+      if (savedToken !== editToken) {
+        return NextResponse.json({ error: 'Invalid token' }, { status: 403 });
+      }
+
+      await redis.set(`portfolio:${existingSlug}`, JSON.stringify(data), {
+        ex: 60 * 60 * 24 * 30,
+      });
+
+      // Оновлюємо в галереї
+      const allItems = await redis.lrange('gallery', 0, 49);
+      const updatedItems = allItems.map((item) => {
+        const parsed = typeof item === 'string' ? JSON.parse(item) : item;
+        if (parsed.slug === existingSlug) {
+          return JSON.stringify({
+            ...parsed,
+            name: data.personal.name,
+            title: data.personal.title,
+            theme: data.theme,
+            avatar: data.personal.avatar || '',
+            projectsCount: data.projects.length,
+          });
+        }
+        return typeof item === 'string' ? item : JSON.stringify(item);
+      });
+
+      await redis.del('gallery');
+      if (updatedItems.length > 0) {
+        await redis.rpush('gallery', ...(updatedItems as string[]));
+      }
+
+      return NextResponse.json({
+        slug: existingSlug,
+        url: `/p/${existingSlug}`,
+      });
+    }
+
+    // Створюємо нове
+    slug = generateSlug(data.personal.name || 'portfolio');
+    const newToken =
+      Math.random().toString(36).substring(2) +
+      Math.random().toString(36).substring(2);
 
     await redis.set(`portfolio:${slug}`, JSON.stringify(data), {
       ex: 60 * 60 * 24 * 30,
     });
+    await redis.set(`token:${slug}`, newToken, {
+      ex: 60 * 60 * 24 * 30,
+    });
 
-    // Зберігаємо в галерею
     const galleryItem = {
       slug,
       name: data.personal.name,
@@ -83,11 +138,10 @@ export async function POST(req: NextRequest) {
       projectsCount: data.projects.length,
       publishedAt: Date.now(),
     };
-
     await redis.lpush('gallery', JSON.stringify(galleryItem));
-    await redis.ltrim('gallery', 0, 49); // максимум 50 портфоліо в галереї
+    await redis.ltrim('gallery', 0, 49);
 
-    return NextResponse.json({ slug, url: `/p/${slug}` });
+    return NextResponse.json({ slug, url: `/p/${slug}`, editToken: newToken });
   } catch (error) {
     console.error('Publish error:', error);
     return NextResponse.json({ error: 'Failed to publish' }, { status: 500 });

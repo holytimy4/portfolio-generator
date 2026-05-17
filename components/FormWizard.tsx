@@ -7,6 +7,8 @@ import {
   loadFromStorage,
   clearStorage,
   defaultData,
+  saveEditToken,
+  loadEditToken,
 } from '@/lib/storage';
 import {
   validate,
@@ -122,16 +124,24 @@ export default function FormWizard() {
     setIsPublishing(true);
     setPublishUrl(null);
     try {
+      const existingEdit = loadEditToken();
+      const body = existingEdit
+        ? { data, editToken: existingEdit.token, slug: existingEdit.slug }
+        : { data };
+
       const response = await fetch('/api/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(body),
       });
       const result = await response.json();
       if (result.slug) {
         const fullUrl = `${window.location.origin}/p/${result.slug}`;
         setPublishUrl(fullUrl);
         setPublishedSlug(result.slug);
+        if (result.editToken) {
+          saveEditToken(result.slug, result.editToken);
+        }
       }
     } catch {
       alert('Помилка публікації. Спробуйте ще раз.');
@@ -252,7 +262,11 @@ export default function FormWizard() {
               disabled={isPublishing || !data.personal.name}
               className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              {isPublishing ? '...' : '🌐 Публікувати'}
+              {isPublishing
+                ? '...'
+                : loadEditToken()
+                  ? '🔄 Оновити'
+                  : '🌐 Публікувати'}
             </button>
             <button
               onClick={handleExportPdf}
