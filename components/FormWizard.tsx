@@ -28,6 +28,7 @@ import StepEducation from './steps/StepEducation';
 import StepExperience from './steps/StepExperience';
 import StepContacts from './steps/StepContacts';
 import ThemePicker from './ThemePicker';
+import ScoreWidget from './ScoreWidget';
 import Preview from './Preview';
 import QRModal from './QRModal';
 
@@ -62,7 +63,6 @@ export default function FormWizard() {
   useEffect(() => {
     setIsClient(true);
     setData(loadFromStorage());
-
     const existing = loadEditToken();
     if (existing) {
       setPublishedSlug(existing.slug);
@@ -140,7 +140,6 @@ export default function FormWizard() {
       const body = existingEdit
         ? { data, editToken: existingEdit.token, slug: existingEdit.slug }
         : { data };
-
       const response = await fetch('/api/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -151,11 +150,9 @@ export default function FormWizard() {
         const fullUrl = `${window.location.origin}/p/${result.slug}`;
         setPublishUrl(fullUrl);
         setPublishedSlug(result.slug);
-
         const viewsRes = await fetch(`/api/views?slug=${result.slug}`);
         const viewsData = await viewsRes.json();
         setViews(viewsData.views);
-
         if (result.editToken) {
           saveEditToken(result.slug, result.editToken);
           saveMyPortfolio({
@@ -415,8 +412,14 @@ export default function FormWizard() {
 
       {/* Mobile menu modal */}
       {showMobileMenu && (
-        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl p-6 w-full space-y-3">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-end justify-center z-50"
+          onClick={() => setShowMobileMenu(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-t-2xl p-6 w-full space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
               Дії
             </h3>
@@ -561,6 +564,10 @@ export default function FormWizard() {
               <ThemePicker data={data} onChange={handleChange} />
             </div>
 
+            <div className="lg:hidden">
+              {isClient && <ScoreWidget data={data} />}
+            </div>
+
             {currentStep !== 'preview' && (
               <div className="flex justify-between">
                 <button
@@ -586,9 +593,12 @@ export default function FormWizard() {
             )}
           </div>
 
-          {/* Right: Preview hidden on mobile */}
-          <div className="hidden lg:block bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sticky top-24 self-start">
-            {isClient && <Preview data={data} />}
+          {/* Right: Preview + Score */}
+          <div className="hidden lg:flex lg:flex-col gap-4 sticky top-24 self-start">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              {isClient && <Preview data={data} />}
+            </div>
+            {isClient && <ScoreWidget data={data} />}
           </div>
         </div>
       </main>
