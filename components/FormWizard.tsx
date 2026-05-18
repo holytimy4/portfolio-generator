@@ -264,7 +264,7 @@ export default function FormWizard() {
             >
               {isPublishing
                 ? '...'
-                : loadEditToken()
+                : publishedSlug
                   ? '🔄 Оновити'
                   : '🌐 Публікувати'}
             </button>

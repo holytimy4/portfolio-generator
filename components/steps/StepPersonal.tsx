@@ -12,6 +12,7 @@ interface Props {
 
 export default function StepPersonal({ data, onChange, errors }: Props) {
   const [uploading, setUploading] = useState(false);
+  const [generatingBio, setGeneratingBio] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const update = (field: string, value: string) => {
@@ -24,25 +25,46 @@ export default function StepPersonal({ data, onChange, errors }: Props) {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
-
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
-
       const result = await response.json();
-      if (result.url) {
-        update('avatar', result.url);
-      }
+      if (result.url) update('avatar', result.url);
     } catch {
       alert('Помилка завантаження фото');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleGenerateBio = async () => {
+    if (!data.personal.name || !data.personal.title) {
+      alert("Спочатку заповніть ім'я і посаду");
+      return;
+    }
+    setGeneratingBio(true);
+    try {
+      const response = await fetch('/api/ai-bio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.personal.name,
+          title: data.personal.title,
+          skills: data.skills?.map((s) => s.name) || [],
+          projects: data.projects || [],
+        }),
+      });
+      const result = await response.json();
+      if (result.bio) update('bio', result.bio);
+    } catch {
+      alert('Помилка генерації. Спробуйте ще раз.');
+    } finally {
+      setGeneratingBio(false);
     }
   };
 
@@ -140,9 +162,20 @@ export default function StepPersonal({ data, onChange, errors }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Про себе *
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Про себе *
+          </label>
+          <button
+            onClick={handleGenerateBio}
+            disabled={
+              generatingBio || !data.personal.name || !data.personal.title
+            }
+            className="text-xs bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-lg hover:opacity-90 disabled:opacity-40 transition-all"
+          >
+            {generatingBio ? '⏳ Генерація...' : '✨ Згенерувати AI'}
+          </button>
+        </div>
         <textarea
           value={data.personal.bio}
           onChange={(e) => update('bio', e.target.value)}
