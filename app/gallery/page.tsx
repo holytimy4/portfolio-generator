@@ -52,12 +52,20 @@ export default async function GalleryPage() {
               {items.length} опублікованих портфоліо
             </p>
           </div>
-          <Link
-            href="/"
-            className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-          >
-            + Створити своє
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin"
+              className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              🔐 Адмін
+            </Link>
+            <Link
+              href="/"
+              className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            >
+              + Створити своє
+            </Link>
+          </div>
         </div>
       </header>
 
