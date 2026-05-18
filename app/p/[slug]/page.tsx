@@ -5,6 +5,10 @@ import { notFound } from 'next/navigation';
 
 const redis = Redis.fromEnv();
 
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL ||
+  'https://portfolio-generator-tau-seven.vercel.app';
+
 export default async function PublicPortfolioPage({
   params,
 }: {
@@ -22,12 +26,23 @@ export default async function PublicPortfolioPage({
 
   if (!raw) return notFound();
 
-  // Збільшуємо лічильник переглядів
   await redis.incr(`views:${slug}`);
-  const views = (await redis.get(`views:${slug}`)) as number;
 
   const data =
     typeof raw === 'string' ? JSON.parse(raw) : (raw as PortfolioData);
+
+  if (data.contacts?.telegramChatId) {
+    fetch(`${BASE_URL}/api/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatId: data.contacts.telegramChatId,
+        portfolioName: data.personal?.name || 'Портфоліо',
+        slug,
+      }),
+    }).catch(console.error);
+  }
+
   const html = generateHTML(data);
 
   return <div dangerouslySetInnerHTML={{ __html: html }} />;

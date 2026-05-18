@@ -55,6 +55,14 @@ export interface PortfolioData {
   theme: 'minimal' | 'dark' | 'creative';
 }
 
+export interface ContactInfo {
+  email: string;
+  github?: string;
+  linkedin?: string;
+  telegram?: string;
+  telegramChatId?: string;
+}
+
 export type Step =
   | 'personal'
   | 'projects'
