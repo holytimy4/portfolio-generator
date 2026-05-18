@@ -11,18 +11,20 @@ export default async function PublicPortfolioPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  console.log('Looking for slug:', slug);
 
   let raw;
   try {
     raw = await redis.get(`portfolio:${slug}`);
-    console.log('Found:', raw ? 'YES' : 'NO');
   } catch (e) {
     console.error('Redis error:', e);
     return notFound();
   }
 
   if (!raw) return notFound();
+
+  // Збільшуємо лічильник переглядів
+  await redis.incr(`views:${slug}`);
+  const views = (await redis.get(`views:${slug}`)) as number;
 
   const data =
     typeof raw === 'string' ? JSON.parse(raw) : (raw as PortfolioData);

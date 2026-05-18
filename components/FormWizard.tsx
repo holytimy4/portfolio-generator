@@ -9,6 +9,7 @@ import {
   defaultData,
   saveEditToken,
   loadEditToken,
+  saveMyPortfolio,
 } from '@/lib/storage';
 import {
   validate,
@@ -17,7 +18,6 @@ import {
   ValidationErrors,
 } from '@/lib/validation';
 import { exportToPdf } from '@/lib/exportPdf';
-
 import Link from 'next/link';
 import ThemeToggle from './ThemeToggle';
 import AnimatedStep from './AnimatedStep';
@@ -56,11 +56,22 @@ export default function FormWizard() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | null>(null);
   const [publishUrl, setPublishUrl] = useState<string | null>(null);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+  const [views, setViews] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
     setData(loadFromStorage());
+
+    const existing = loadEditToken();
+    if (existing) {
+      setPublishedSlug(existing.slug);
+      const fullUrl = `${window.location.origin}/p/${existing.slug}`;
+      setPublishUrl(fullUrl);
+      fetch(`/api/views?slug=${existing.slug}`)
+        .then((r) => r.json())
+        .then((d) => setViews(d.views));
+    }
   }, []);
 
   useEffect(() => {
@@ -88,6 +99,7 @@ export default function FormWizard() {
     setErrors({});
     setPublishUrl(null);
     setPublishedSlug(null);
+    setViews(null);
     setShowResetConfirm(false);
   };
 
@@ -139,8 +151,22 @@ export default function FormWizard() {
         const fullUrl = `${window.location.origin}/p/${result.slug}`;
         setPublishUrl(fullUrl);
         setPublishedSlug(result.slug);
+
+        const viewsRes = await fetch(`/api/views?slug=${result.slug}`);
+        const viewsData = await viewsRes.json();
+        setViews(viewsData.views);
+
         if (result.editToken) {
           saveEditToken(result.slug, result.editToken);
+          saveMyPortfolio({
+            slug: result.slug,
+            name: data.personal.name,
+            title: data.personal.title,
+            theme: data.theme,
+            avatar: data.personal.avatar || '',
+            publishedAt: Date.now(),
+            editToken: result.editToken,
+          });
         }
       }
     } catch {
@@ -204,16 +230,16 @@ export default function FormWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-40">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-6 py-3 md:py-4 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-base md:text-xl font-bold text-gray-900 truncate">
+            <h1 className="text-base md:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
               Portfolio Generator
             </h1>
             <div className="flex items-center gap-2 mt-0.5">
-              <div className="w-20 md:w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-20 md:w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                   style={{ width: `${completion}%` }}
@@ -242,6 +268,12 @@ export default function FormWizard() {
               className="text-xs text-gray-400 hover:text-indigo-500 transition-colors px-2 py-1"
             >
               🌐
+            </Link>
+            <Link
+              href="/my"
+              className="text-xs text-gray-400 hover:text-indigo-500 transition-colors px-2 py-1"
+            >
+              👤
             </Link>
             <ThemeToggle />
             <button
@@ -306,7 +338,7 @@ export default function FormWizard() {
 
       {/* Publish banner */}
       {publishUrl && (
-        <div className="bg-green-50 border-b border-green-200 px-4 md:px-6 py-3">
+        <div className="bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800 px-4 md:px-6 py-3">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-green-600 text-sm font-medium shrink-0">
@@ -316,7 +348,7 @@ export default function FormWizard() {
                 href={publishUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-green-700 text-sm underline truncate"
+                className="text-green-700 dark:text-green-400 text-sm underline truncate"
               >
                 {publishUrl}
               </a>
@@ -328,6 +360,9 @@ export default function FormWizard() {
               >
                 {copied ? '✓ Скопійовано' : 'Копіювати'}
               </button>
+              <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                👁 {views ?? 0} переглядів
+              </span>
               <button
                 onClick={() => setShowQR(true)}
                 className="text-xs bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700"
@@ -353,17 +388,17 @@ export default function FormWizard() {
       {/* Reset confirm modal */}
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl max-w-sm w-full">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
               Скинути все?
             </h3>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               Всі введені дані буде видалено. Цю дію не можна скасувати.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowResetConfirm(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Скасувати
               </button>
@@ -381,8 +416,10 @@ export default function FormWizard() {
       {/* Mobile menu modal */}
       {showMobileMenu && (
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50">
-          <div className="bg-white rounded-t-2xl p-6 w-full space-y-3">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Дії</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-t-2xl p-6 w-full space-y-3">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Дії
+            </h3>
             <button
               onClick={() => {
                 handleDownload();
@@ -424,9 +461,16 @@ export default function FormWizard() {
               📱 QR-код
             </button>
             <Link
+              href="/my"
+              onClick={() => setShowMobileMenu(false)}
+              className="w-full block bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-medium text-left"
+            >
+              👤 Мої портфоліо
+            </Link>
+            <Link
               href="/stats"
               onClick={() => setShowMobileMenu(false)}
-              className="w-full block bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-medium text-left"
+              className="w-full block bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-medium text-left"
             >
               📊 Статистика
             </Link>
@@ -435,13 +479,13 @@ export default function FormWizard() {
                 setShowResetConfirm(true);
                 setShowMobileMenu(false);
               }}
-              className="w-full bg-red-50 text-red-500 px-4 py-3 rounded-xl font-medium text-left"
+              className="w-full bg-red-50 dark:bg-red-900/20 text-red-500 px-4 py-3 rounded-xl font-medium text-left"
             >
               🗑 Скинути все
             </button>
             <button
               onClick={() => setShowMobileMenu(false)}
-              className="w-full bg-gray-50 text-gray-400 px-4 py-3 rounded-xl text-left"
+              className="w-full bg-gray-50 dark:bg-gray-700 text-gray-400 px-4 py-3 rounded-xl text-left"
             >
               Закрити
             </button>
@@ -452,8 +496,10 @@ export default function FormWizard() {
       {/* Mobile preview modal */}
       {showMobilePreview && (
         <div className="fixed inset-0 bg-black/80 flex flex-col z-50">
-          <div className="flex items-center justify-between px-4 py-3 bg-white">
-            <h3 className="font-bold text-gray-900">Попередній перегляд</h3>
+          <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800">
+            <h3 className="font-bold text-gray-900 dark:text-gray-100">
+              Попередній перегляд
+            </h3>
             <button
               onClick={() => setShowMobilePreview(false)}
               className="text-gray-500 text-lg"
@@ -468,7 +514,7 @@ export default function FormWizard() {
       )}
 
       {/* Steps navigation */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-2 overflow-x-auto">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-6 py-2 overflow-x-auto">
         <div className="max-w-7xl mx-auto flex gap-1 min-w-max">
           {steps.map((step, index) => (
             <button
@@ -476,8 +522,8 @@ export default function FormWizard() {
               onClick={() => setCurrentStep(step.id)}
               className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 currentStep === step.id
-                  ? 'bg-indigo-50 text-indigo-700'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <span
@@ -486,7 +532,7 @@ export default function FormWizard() {
                     ? 'bg-indigo-600 text-white'
                     : index < currentIndex
                       ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
                 }`}
               >
                 {index < currentIndex ? '✓' : index + 1}
@@ -504,14 +550,14 @@ export default function FormWizard() {
           {/* Left: Form */}
           <div className="space-y-4 md:space-y-6">
             {currentStep !== 'preview' && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6">
                 <AnimatedStep stepKey={currentStep}>
                   {renderStep()}
                 </AnimatedStep>
               </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6">
               <ThemePicker data={data} onChange={handleChange} />
             </div>
 
@@ -522,7 +568,7 @@ export default function FormWizard() {
                     setCurrentStep(steps[currentIndex - 1]?.id || 'personal')
                   }
                   disabled={currentIndex === 0}
-                  className="px-4 md:px-5 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
+                  className="px-4 md:px-5 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
                 >
                   ← Назад
                 </button>
@@ -541,7 +587,7 @@ export default function FormWizard() {
           </div>
 
           {/* Right: Preview hidden on mobile */}
-          <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24 self-start">
+          <div className="hidden lg:block bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sticky top-24 self-start">
             {isClient && <Preview data={data} />}
           </div>
         </div>

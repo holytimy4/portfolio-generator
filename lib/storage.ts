@@ -3,6 +3,7 @@ import { PortfolioData } from './types';
 const STORAGE_KEY = 'portfolio_generator_data';
 const TOKEN_KEY = 'portfolio_edit_token';
 const SLUG_KEY = 'portfolio_slug';
+const MY_PORTFOLIOS_KEY = 'my_portfolios';
 
 export const defaultData: PortfolioData = {
   personal: { name: '', title: '', bio: '', avatar: '' },
@@ -56,6 +57,40 @@ export function loadEditToken(): { slug: string; token: string } | null {
     return { slug, token };
   } catch (e) {
     return null;
+  }
+}
+
+export interface MyPortfolio {
+  slug: string;
+  name: string;
+  title: string;
+  theme: string;
+  avatar: string;
+  publishedAt: number;
+  editToken: string;
+}
+
+export function saveMyPortfolio(portfolio: MyPortfolio): void {
+  try {
+    const existing = loadMyPortfolios();
+    const updated = existing.filter((p) => p.slug !== portfolio.slug);
+    updated.unshift(portfolio);
+    localStorage.setItem(
+      MY_PORTFOLIOS_KEY,
+      JSON.stringify(updated.slice(0, 20)),
+    );
+  } catch (e) {
+    console.error('Failed to save portfolio', e);
+  }
+}
+
+export function loadMyPortfolios(): MyPortfolio[] {
+  try {
+    const raw = localStorage.getItem(MY_PORTFOLIOS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch (e) {
+    return [];
   }
 }
 
